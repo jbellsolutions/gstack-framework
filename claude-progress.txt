@@ -1,0 +1,22 @@
+# Claude Progress -- gstack-framework
+# This file tracks session state for AI continuity across sessions.
+
+## Last session
+- Date: 2026-03-28
+- What was done: AGI-1 implementation -- added self-healing, self-learning, and AI-readiness infrastructure
+- Files added: AGENTS.md, GEMINI.md, features.json, llms.txt, claude-progress.txt, .claude/agents/*, .claude/healing/*, .claude/learning/*, .cursor/rules/*
+- Files modified: CLAUDE.md (appended session startup/end, compaction rules, search strategy, thinking guidelines)
+- What was NOT modified: existing skills/, templates/, checklists/ (preserved for backward compatibility)
+
+## Next steps
+- No immediate next steps. AGI-1 infrastructure is in place.
+- Future work: populate learning files as patterns emerge from usage
+- Future work: add CI validation that healing patterns.json is valid JSON
+- Future work: consider adding a /gf-heal skill that reads healing patterns
+
+## Blockers
+- None
+
+## Notes
+- All existing skills, templates, and checklists were preserved unchanged
+- The AGI-1 additions are purely additive -- no existing interfaces were modified

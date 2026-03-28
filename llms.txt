@@ -1,0 +1,50 @@
+# gstack-framework
+
+> A Claude Code skill pack that transforms any repo to G-Stack quality.
+
+## What this does
+
+Point this framework at any project and it will analyze, audit, create skills, apply templates, and verify -- bringing your repo up to the standard of Garry Tan's gstack.
+
+## Quick start
+
+Install: git clone <repo> ~/.claude/skills/gstack-framework && cd ~/.claude/skills/gstack-framework && ./setup
+Run: /gstack-framework (in any project)
+
+## Skills (8)
+
+- /gstack-framework -- orchestrator, chains all skills
+- /gf-analyze -- scan repo structure, tech stack, docs, skills
+- /gf-audit -- score repo 0-100 against G-Stack standards
+- /gf-find-skills -- identify skill gaps across dev lifecycle
+- /gf-find-agents -- find multi-agent chaining opportunities
+- /gf-create-skills -- generate SKILL.md files for each gap
+- /gf-apply -- apply ETHOS.md, CLAUDE.md, ARCHITECTURE.md, etc.
+- /gf-verify -- verify everything, produce final score
+
+## Templates (9)
+
+SKILL.md.tmpl, CLAUDE-MD.tmpl, ARCHITECTURE.md.tmpl, ETHOS.md.tmpl, frontmatter.md.tmpl, preamble.md.tmpl, voice.md.tmpl, completion-status.md.tmpl, ask-user-question.md.tmpl
+
+All templates use {{PLACEHOLDER}} syntax. Skills read and fill them.
+
+## Checklists (3)
+
+- skill-quality.md -- evaluate individual SKILL.md files (~60 checkboxes)
+- repo-quality.md -- audit entire repo 0-100 across 5 categories
+- audit-criteria.md -- detailed scoring rules
+
+## Key rules
+
+- Non-destructive: never overwrites without asking
+- Every generated SKILL.md must pass skill-quality.md
+- Skills are standalone markdown. No build step.
+- Templates are the public API. Changing placeholder names breaks the apply skill.
+
+## Repo layout
+
+skills/ -- 8 active skills
+templates/ -- 9 raw templates
+checklists/ -- 3 scoring rubrics
+reference/ -- analysis docs + original gstack clone
+setup -- one-command installer

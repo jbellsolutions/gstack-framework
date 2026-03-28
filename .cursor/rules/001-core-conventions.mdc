@@ -1,0 +1,31 @@
+---
+description: "Core team conventions applied to every interaction"
+alwaysApply: true
+---
+
+# Core Conventions
+
+## Commits
+- Descriptive messages explaining WHY, not just WHAT
+- One logical change per commit
+- Never commit secrets, .env files, or credentials
+
+## Error Handling
+- Every external call (API, DB, file) gets try/catch or equivalent
+- Errors include context: what was attempted, what failed, and what to do about it
+- Never swallow errors silently
+
+## Code Style
+- Follow existing patterns in the codebase
+- If no pattern exists, follow language defaults
+- Comments explain WHY, not WHAT (the code explains what)
+
+## Testing
+- New features get tests before merging
+- Bug fixes include a regression test
+- Run existing tests before committing
+
+## Security
+- No hardcoded secrets — use environment variables
+- Validate all external inputs
+- Check .gitignore includes .env, credentials, and key files

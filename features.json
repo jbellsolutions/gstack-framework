@@ -1,0 +1,94 @@
+{
+  "schema_version": "1.0.0",
+  "project": "gstack-framework",
+  "description": "AI-readable feature manifest for gstack-framework",
+  "features": {
+    "skills": {
+      "description": "8 active skills that transform repos to G-Stack quality",
+      "items": [
+        {
+          "name": "orchestrator",
+          "command": "/gstack-framework",
+          "purpose": "Main entry point. Chains all skills in sequence."
+        },
+        {
+          "name": "analyze",
+          "command": "/gf-analyze",
+          "purpose": "Scan repo structure, tech stack, existing docs and skills."
+        },
+        {
+          "name": "audit",
+          "command": "/gf-audit",
+          "purpose": "Score repo 0-100 against G-Stack quality standards."
+        },
+        {
+          "name": "find-skills",
+          "command": "/gf-find-skills",
+          "purpose": "Identify where skills should exist across the dev lifecycle."
+        },
+        {
+          "name": "find-agents",
+          "command": "/gf-find-agents",
+          "purpose": "Find multi-agent and cross-skill chaining opportunities."
+        },
+        {
+          "name": "create-skills",
+          "command": "/gf-create-skills",
+          "purpose": "Generate SKILL.md files for approved skills."
+        },
+        {
+          "name": "apply",
+          "command": "/gf-apply",
+          "purpose": "Apply full G-Stack template (ETHOS, CLAUDE.md, ARCHITECTURE, etc.)."
+        },
+        {
+          "name": "verify",
+          "command": "/gf-verify",
+          "purpose": "Verify all components applied correctly, produce final score."
+        }
+      ]
+    },
+    "templates": {
+      "description": "9 templates with {{PLACEHOLDER}} syntax for skill-driven generation",
+      "items": [
+        "SKILL.md.tmpl",
+        "CLAUDE-MD.tmpl",
+        "ARCHITECTURE.md.tmpl",
+        "ETHOS.md.tmpl",
+        "frontmatter.md.tmpl",
+        "preamble.md.tmpl",
+        "voice.md.tmpl",
+        "completion-status.md.tmpl",
+        "ask-user-question.md.tmpl"
+      ]
+    },
+    "checklists": {
+      "description": "3 scoring rubrics for quality validation",
+      "items": [
+        {
+          "name": "skill-quality.md",
+          "purpose": "Evaluate individual SKILL.md files (~60 checkboxes)"
+        },
+        {
+          "name": "repo-quality.md",
+          "purpose": "Audit entire repo 0-100 across 5 categories"
+        },
+        {
+          "name": "audit-criteria.md",
+          "purpose": "Detailed audit criteria and scoring rules"
+        }
+      ]
+    },
+    "self_healing": {
+      "description": "Automatic error pattern recognition and fix suggestions",
+      "config_path": ".claude/healing/patterns.json",
+      "history_path": ".claude/healing/history.json"
+    },
+    "self_learning": {
+      "description": "Cross-session knowledge accumulation",
+      "observations_path": ".claude/learning/observations.json",
+      "insights_path": ".claude/learning/insights.json",
+      "evolution_path": ".claude/learning/evolution.json"
+    }
+  }
+}
