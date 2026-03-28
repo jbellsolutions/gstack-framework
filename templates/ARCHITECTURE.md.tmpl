@@ -1,0 +1,113 @@
+# {{PROJECT_NAME}} Architecture
+
+This document explains **why** {{PROJECT_NAME}} is built the way it is. Not how (read the code for that). Why.
+
+If you are about to change a technical decision, read this first. If the reason still holds, do not change it. If the reason no longer holds, update this document and then change the code.
+
+---
+
+## The Core Idea
+
+{{CORE_IDEA}}
+
+One paragraph. One insight. Everything else follows from this.
+
+---
+
+## Key Technical Decisions
+
+### Why {{TECH_CHOICE_1}}
+
+{{TECH_CHOICE_1_REASONING}}
+
+Concrete reasons, not vibes. Not "it's popular" or "it's the industry standard." Why does this specific technology solve this specific problem better than the alternatives that were considered?
+
+| Considered | Rejected because |
+|-----------|-----------------|
+| {{ALTERNATIVE_1}} | {{REJECTION_REASON_1}} |
+| {{ALTERNATIVE_2}} | {{REJECTION_REASON_2}} |
+
+### Why {{TECH_CHOICE_2}}
+
+{{TECH_CHOICE_2_REASONING}}
+
+| Considered | Rejected because |
+|-----------|-----------------|
+| {{ALTERNATIVE_3}} | {{REJECTION_REASON_3}} |
+| {{ALTERNATIVE_4}} | {{REJECTION_REASON_4}} |
+
+{{TECH_CHOICES}}
+
+---
+
+## What's Intentionally Not Here
+
+{{WHATS_NOT_HERE}}
+
+Every "not here" entry needs a concrete reason. "We didn't need it" is valid. "We didn't think of it" is not. This section prevents well-meaning contributors from adding things that were deliberately excluded.
+
+- **{{EXCLUDED_1}}** -- {{REASON_1}}
+- **{{EXCLUDED_2}}** -- {{REASON_2}}
+- **{{EXCLUDED_3}}** -- {{REASON_3}}
+
+If you think something should be added from this list, open an issue first. Explain what changed since the original decision. Do not just add it.
+
+---
+
+## Error Philosophy
+
+Errors are for AI agents and developers, not end users. Every error message must be actionable.
+
+| Quality | Example |
+|---------|---------|
+| Bad | `"Error: operation failed"` |
+| Bad | `"Element not found"` |
+| Good | `"Element not found. Run 'snapshot -i' to see available elements, then use '@e1' syntax."` |
+| Good | `"Config missing 'port' field. Expected: { port: number } in ~/.config/app.json"` |
+
+Rules:
+- Include what was expected vs what was found
+- Include the command or action that would fix it
+- Include the file path, line number, or config key
+- Never swallow errors silently. Log them. Surface them. Make them searchable.
+
+---
+
+## Data Flow
+
+```
+{{DATA_FLOW_DIAGRAM}}
+```
+
+Describe the primary data flow. Where does data enter? Where does it get transformed? Where does it exit? What format at each stage?
+
+---
+
+## Security Boundaries
+
+- {{SECURITY_BOUNDARY_1}}
+- {{SECURITY_BOUNDARY_2}}
+- {{SECURITY_BOUNDARY_3}}
+
+If the system handles user data, authentication, or external APIs, document the trust boundaries here. What is trusted? What is untrusted? Where do you validate?
+
+---
+
+## Performance Characteristics
+
+| Operation | Expected | Measured | Notes |
+|-----------|----------|----------|-------|
+| {{OPERATION_1}} | {{EXPECTED_1}} | {{MEASURED_1}} | {{NOTES_1}} |
+| {{OPERATION_2}} | {{EXPECTED_2}} | {{MEASURED_2}} | {{NOTES_2}} |
+
+If performance matters (and it usually does), document the expectations. A future contributor should know whether a 200ms response time is a bug or a feature.
+
+---
+
+## Revision History
+
+| Date | Decision | Rationale |
+|------|----------|-----------|
+| {{DATE}} | Initial architecture | {{RATIONALE}} |
+
+Update this when you change a major technical decision. Future you will thank present you.

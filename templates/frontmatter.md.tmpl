@@ -1,0 +1,158 @@
+# YAML Frontmatter Reference
+
+Every SKILL.md file begins with a YAML frontmatter block delimited by `---`. This block controls skill behavior, tool access, triggering, and integration with the skill system.
+
+---
+
+## Complete Frontmatter Template
+
+```yaml
+---
+# ============================================================
+# REQUIRED FIELDS
+# ============================================================
+
+name: {{SKILL_NAME}}
+# Kebab-case identifier. Used as the slash command name.
+# Examples: investigate, ship, qa, plan-ceo-review
+# Convention: lowercase, hyphens for spaces, no underscores
+
+version: {{VERSION}}
+# Semantic versioning: MAJOR.MINOR.PATCH
+# Bump MAJOR for breaking changes to skill behavior
+# Bump MINOR for new phases or capabilities
+# Bump PATCH for fixes and refinements
+# Example: 1.0.0, 2.3.1
+
+description: |
+  {{LINE_1_SUMMARY}}
+  {{LINE_2_TRIGGERS}}
+  {{LINE_3_PROACTIVE}}
+  {{LINE_4_DISAMBIGUATION}}
+# Line 1: Imperative summary of what the skill does.
+#   "Systematically debug issues with root cause investigation."
+#
+# Line 2: Trigger phrases. Start with "Use when asked to..."
+#   "Use when asked to 'debug this', 'fix this bug', or 'investigate this error'."
+#
+# Line 3: Proactive triggers. Start with "Proactively suggest when..."
+#   "Proactively suggest when the user reports errors or unexpected behavior."
+#
+# Line 4: Disambiguation. Start with "For..."
+#   "For QA testing, use /qa instead."
+#
+# This field does double duty: it is both human-readable documentation
+# AND the trigger text that the skill system uses to decide when to
+# invoke this skill. Write it carefully.
+
+# ============================================================
+# PREAMBLE CONFIGURATION
+# ============================================================
+
+preamble-tier: {{1-4}}
+# Controls how much scaffolding the skill gets:
+#
+# Tier 1 (Lightweight):
+#   Core session tracking, upgrade check, telemetry, trimmed voice.
+#   Use for: browse commands, single-task utilities, read-only tools.
+#
+# Tier 2 (Standard):
+#   Tier 1 + full voice directive, AskUserQuestion format,
+#   Completeness Principle with effort table.
+#   Use for: debugging, analysis, retrospectives.
+#
+# Tier 3 (Full Context):
+#   Tier 2 + repo mode (solo/collaborative), Search Before Building,
+#   contributor mode.
+#   Use for: brainstorming, planning, strategy, architecture review.
+#
+# Tier 4 (Workflow):
+#   Tier 3 + test failure triage (in-branch vs pre-existing),
+#   cross-skill orchestration, advanced stop/continue logic.
+#   Use for: ship, QA, code review, deploy workflows.
+
+# ============================================================
+# TOOL ACCESS CONTROL
+# ============================================================
+
+allowed-tools:
+  - Bash
+  - Read
+  - Edit
+  - Write
+  - Glob
+  - Grep
+  - AskUserQuestion
+# Explicit whitelist. Skills can ONLY use tools listed here.
+# This prevents scope creep: a brainstorming skill should not
+# have Write access, a browse skill should not have Edit access.
+#
+# Common tool sets by skill type:
+#
+# Read-only analysis:    [Bash, Read, Glob, Grep, AskUserQuestion]
+# Code modification:     [Bash, Read, Edit, Write, Glob, Grep, AskUserQuestion]
+# Browse/QA:             [Bash, Read, Glob, Grep, AskUserQuestion, WebSearch]
+# Planning (no code):    [Bash, Read, Glob, Grep, AskUserQuestion, Write]
+#
+# Note: AskUserQuestion should be in almost every skill.
+# It is how skills communicate with the user.
+
+# ============================================================
+# OPTIONAL FIELDS
+# ============================================================
+
+benefits-from:
+  - {{RELATED_SKILL_1}}
+  - {{RELATED_SKILL_2}}
+# Skills that enhance this one when available.
+# Used by the skill system to suggest adjacent skills.
+# Example: investigate benefits-from [browse] for visual debugging.
+
+hooks:
+  PreToolUse:
+    - matcher: "{{TOOL_NAME}}"
+      hooks:
+        - type: command
+          command: "{{SHELL_COMMAND}}"
+# Pre-tool-use hooks run BEFORE the matched tool executes.
+# Used for safety gates:
+#   - Freeze: block edits outside a scoped directory
+#   - Guard: warn before destructive commands
+#   - Validation: check prerequisites before actions
+#
+# Example (freeze gate):
+#   PreToolUse:
+#     - matcher: "Edit"
+#       hooks:
+#         - type: command
+#           command: "bash ~/.claude/skills/gstack/freeze/bin/check-freeze.sh"
+---
+```
+
+---
+
+## Field Quick Reference
+
+| Field | Required | Type | Purpose |
+|-------|----------|------|---------|
+| `name` | Yes | string | Skill identifier and slash command |
+| `version` | Yes | string | Semantic version for tracking changes |
+| `description` | Yes | multi-line string | Human docs + machine trigger text |
+| `preamble-tier` | Yes | integer (1-4) | Scaffolding complexity level |
+| `allowed-tools` | Yes | string array | Tool whitelist (security boundary) |
+| `benefits-from` | No | string array | Adjacent skill suggestions |
+| `hooks` | No | object | Pre-tool safety gates |
+
+---
+
+## Common Mistakes
+
+1. **Missing trigger phrases in description.** The description IS the trigger. If you do not include "Use when asked to..." the skill will not auto-invoke.
+
+2. **Over-permissive tool list.** A planning skill with Write/Edit access will start modifying code. Restrict tools to what the skill actually needs.
+
+3. **Wrong preamble tier.** A simple utility at Tier 4 wastes tokens on unnecessary scaffolding. A complex workflow at Tier 1 misses critical behavioral controls.
+
+4. **No disambiguation line.** When two skills overlap (qa vs qa-only, investigate vs debug), the "For X, use /Y instead" line prevents the wrong skill from triggering.
+
+5. **Forgetting AskUserQuestion in allowed-tools.** Without it, the skill cannot ask clarifying questions and will guess instead.

@@ -1,0 +1,152 @@
+# AskUserQuestion Format
+
+Every time you need user input, follow this exact 4-part structure. No exceptions. This format exists because AI agents are bad at asking questions. They either ask vague open-ended questions (forcing the user to think) or present options without recommendations (forcing the user to evaluate). This format fixes both problems.
+
+---
+
+## The 4-Part Structure
+
+### Part 1: Re-ground
+
+State the project, branch, and current task in 1-2 sentences. Assume the user has not looked at this in 20 minutes. They might have been in a meeting, on a call, or working on something else entirely.
+
+**Template:**
+```
+Working on {{PROJECT_NAME}} (branch: {{BRANCH}}). Currently in Phase {{N}} of {{SKILL_NAME}}: {{what you are doing right now}}.
+```
+
+**Examples:**
+```
+Working on gstack (branch: feature/qa-improvements). Currently in Phase 3 of /qa: fixing the 4 bugs found during testing.
+```
+```
+Working on myapp (branch: main). Currently in Phase 1 of /investigate: gathering context on the auth timeout error.
+```
+
+**Anti-patterns:**
+- Do not skip the re-ground. Ever. Even if you just asked a question 30 seconds ago.
+- Do not use vague language. "Working on the project" is not a re-ground.
+
+---
+
+### Part 2: Simplify
+
+Explain the question in plain English a smart 16-year-old could follow. No jargon unless you define it in the same sentence.
+
+**Template:**
+```
+I need to decide {{what the decision is about}}. The tradeoff is {{simple explanation of the tradeoff}}.
+```
+
+**Examples:**
+```
+I need to decide how to fix the login timeout. The tradeoff is speed (quick patch, might break again) vs thoroughness (refactor the auth flow, takes longer but fixes the root cause).
+```
+```
+I found 3 test failures. Two existed before your branch. The tradeoff is whether to fix all 3 (more complete) or just the one your changes caused (faster to ship).
+```
+
+**Anti-patterns:**
+- Do not dump technical details before explaining the core decision.
+- Do not assume the user remembers the context of your last message.
+- Do not use abbreviations without explaining them.
+
+---
+
+### Part 3: Recommend
+
+Always state your recommendation. Always give a reason. Always include a Completeness score.
+
+**Template:**
+```
+RECOMMENDATION: Choose [X] because [concrete, specific reason].
+Completeness: X/10
+```
+
+The Completeness score measures how "boiled" the lake is:
+- 10/10: Every edge case handled, every test written, zero shortcuts
+- 8/10: Core functionality complete, minor edge cases deferred
+- 5/10: Happy path works, significant gaps remain
+- 3/10: Prototype quality, needs substantial work
+
+**Examples:**
+```
+RECOMMENDATION: Choose A (full refactor) because the auth timeout has caused 3 incidents this month and the patch will not fix the underlying race condition.
+Completeness: 9/10
+```
+```
+RECOMMENDATION: Choose B (fix only your test failure) because the other 2 failures are in unrelated modules and fixing them risks scope creep.
+Completeness: 7/10
+```
+
+**Anti-patterns:**
+- Never present options without a recommendation. You have the context. Use it.
+- Never recommend the lowest-effort option when the higher-effort option is achievable within the AI compression range.
+- Never say "it depends" without then saying what it depends on and which way you lean.
+
+---
+
+### Part 4: Options
+
+Lettered choices. Each with an effort estimate showing both human time and AI time. Each with a Completeness score.
+
+**Template:**
+```
+A) {{Option description}} (human: ~Xh / AI: ~Ym) -- Completeness: X/10
+B) {{Option description}} (human: ~Xh / AI: ~Ym) -- Completeness: X/10
+C) {{Option description}} (human: ~Xh / AI: ~Ym) -- Completeness: X/10
+```
+
+**Rules:**
+- Minimum 2 options, maximum 5. Three is usually right.
+- Always include the "do nothing" or "minimal" option if it exists.
+- Always include the "boil the lake" option.
+- Order from most complete to least complete.
+- Effort estimates are honest. Do not inflate human time or deflate AI time.
+
+**Examples:**
+```
+A) Full auth refactor + migration + tests (human: ~30min review / AI: ~45min) -- Completeness: 10/10
+B) Fix the race condition + add regression test (human: ~10min review / AI: ~20min) -- Completeness: 8/10
+C) Apply the timeout patch from last time (human: ~5min review / AI: ~5min) -- Completeness: 4/10
+```
+
+**Anti-patterns:**
+- Do not offer options that are clearly wrong just to pad the list.
+- Do not skip effort estimates. The user needs to know the cost of each choice.
+- Do not use "approximately" or "roughly." Use ~ and round to the nearest sensible unit.
+
+---
+
+## Complete Example
+
+```
+Working on gstack (branch: fix/qa-retry-logic). Currently in Phase 3 of /qa:
+fixing the test timeout bug in the retry handler.
+
+I found that the retry logic uses setTimeout with a hardcoded 5000ms delay,
+but the test expects completion in 3000ms. There are two ways to fix this.
+The tradeoff is whether to fix just the test or fix the actual retry timing.
+
+RECOMMENDATION: Choose A because hardcoded timeouts are a recurring source
+of flaky tests and the retry handler should use configurable delays.
+Completeness: 9/10
+
+A) Refactor retry handler to use configurable delays + update all tests
+   (human: ~10min review / AI: ~15min) -- Completeness: 9/10
+B) Reduce the hardcoded timeout to 2000ms to match test expectations
+   (human: ~2min review / AI: ~2min) -- Completeness: 5/10
+C) Increase the test timeout to 6000ms
+   (human: ~1min review / AI: ~1min) -- Completeness: 3/10
+```
+
+---
+
+## When NOT to Ask
+
+Do not use AskUserQuestion for:
+- Decisions covered by the "Never stop for" list in the current phase
+- Trivial choices with an obvious correct answer
+- Confirmations that add no value ("Should I proceed?")
+
+If the skill's stop conditions do not list it, handle it automatically and mention it in the report.

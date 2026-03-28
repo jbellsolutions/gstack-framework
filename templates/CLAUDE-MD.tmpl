@@ -1,0 +1,118 @@
+# {{PROJECT_NAME}} Development
+
+## Commands
+
+```bash
+{{PACKAGE_MANAGER}} install          # Install dependencies
+{{TEST_COMMAND}}                      # Run tests
+{{BUILD_COMMAND}}                     # Build the project
+{{PACKAGE_MANAGER}} run lint         # Lint (if configured)
+{{PACKAGE_MANAGER}} run typecheck    # Type check (if configured)
+```
+
+### Common Workflows
+
+```bash
+# Full validation before shipping
+{{TEST_COMMAND}} && {{BUILD_COMMAND}}
+
+# Single test file
+{{TEST_COMMAND}} -- path/to/file.test.ts
+
+# Watch mode (if supported)
+{{TEST_COMMAND}} -- --watch
+```
+
+---
+
+## Project Structure
+
+```
+{{PROJECT_STRUCTURE}}
+```
+
+### Key Directories
+
+| Directory | Purpose | Edit frequency |
+|-----------|---------|---------------|
+| `src/` | Source code | Daily |
+| `test/` | Tests (mirror src/ structure) | Daily |
+| `bin/` | CLI utilities and scripts | Weekly |
+| `scripts/` | Build tooling, code generation | Monthly |
+| `docs/` | Documentation (if separate from root) | Per release |
+
+---
+
+## Key Conventions
+
+### Code Style
+
+- {{CONVENTION_1}}
+- {{CONVENTION_2}}
+- {{CONVENTION_3}}
+- Every function that can fail returns an explicit error, not an exception
+- Tests live next to the code they test, or mirror the src/ directory structure
+- No magic numbers. Named constants or config values only.
+
+### Git Conventions
+
+- Branch naming: `feature/short-description`, `fix/short-description`, `chore/short-description`
+- Commit messages: imperative mood, 50 chars max for subject line
+- One logical change per commit. Atomic commits that pass tests independently.
+- VERSION file uses 4-digit semver: `MAJOR.MINOR.PATCH.MICRO`
+
+### File Naming
+
+- Source files: `kebab-case.ts` or `camelCase.ts` (pick one, be consistent)
+- Test files: `{source-file}.test.ts`
+- Config files: root directory, dotfile or `*.config.ts`
+
+---
+
+## AI Effort Compression
+
+When deciding how much to automate, use this reference:
+
+| Task type | Human team | AI-assisted | Compression |
+|-----------|-----------|-------------|-------------|
+| Boilerplate / scaffolding | 2 days | 15 min | ~100x |
+| Test coverage | 1 day | 15 min | ~50x |
+| Feature implementation | 1 week | 30 min | ~30x |
+| Bug fix (known cause) | 4 hours | 15 min | ~20x |
+| Architecture decisions | 2 days | 4 hours | ~5x |
+| Research / spike | 1 day | 3 hours | ~3x |
+| User interviews | N/A | N/A | 0x (do it yourself) |
+
+Completeness is cheap. Do not recommend shortcuts when the complete implementation is achievable within the compression range. If writing all the tests takes 15 minutes instead of 10, write all the tests.
+
+---
+
+## Error Handling
+
+- Every error message must be actionable by an AI agent
+- Bad: `"Something went wrong"`
+- Good: `"Config file not found at ~/.config/app.json. Run 'app init' to create it."`
+- Include the command to fix it. Include the path that was checked. Include what was expected vs what was found.
+
+---
+
+## Working with This Codebase
+
+### Before Making Changes
+
+1. Read the relevant source files first. Understand what exists.
+2. Check `git log --oneline -20` for recent changes in the area.
+3. Run the test suite to establish a baseline. Know what passes before you start.
+
+### While Making Changes
+
+1. Run tests after every meaningful edit. Do not batch.
+2. Keep changes atomic. One concern per commit.
+3. If you break a test, fix it before moving on. Do not accumulate failures.
+
+### Before Shipping
+
+1. Run the full test suite: `{{TEST_COMMAND}}`
+2. Run the build: `{{BUILD_COMMAND}}`
+3. Check for uncommitted files: `git status`
+4. Review your diff: `git diff main...HEAD`

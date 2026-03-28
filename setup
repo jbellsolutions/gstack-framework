@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# gstack-framework setup -- register skills with Claude Code
+set -e
+
+FRAMEWORK_DIR="$(cd "$(dirname "$0")" && pwd)"
+SKILLS_DIR="$(dirname "$FRAMEWORK_DIR")"
+
+echo "gstack-framework setup"
+echo "======================"
+
+# Check if we're inside a skills directory
+SKILLS_BASENAME="$(basename "$SKILLS_DIR")"
+if [ "$SKILLS_BASENAME" != "skills" ]; then
+  echo ""
+  echo "Note: This repo is not inside a .claude/skills/ directory."
+  echo "For global install, clone to: ~/.claude/skills/gstack-framework"
+  echo ""
+  echo "Creating symlinks in ~/.claude/skills/ instead..."
+  SKILLS_DIR="$HOME/.claude/skills"
+  mkdir -p "$SKILLS_DIR"
+fi
+
+# Link each skill into the skills directory
+LINKED=()
+for skill_dir in "$FRAMEWORK_DIR"/skills/*/; do
+  if [ -f "$skill_dir/SKILL.md" ]; then
+    skill_name="$(basename "$skill_dir")"
+    # Use gf- prefix for sub-skills, full name for orchestrator
+    if [ "$skill_name" = "orchestrator" ]; then
+      link_name="gstack-framework"
+    else
+      link_name="gf-$skill_name"
+    fi
+    target="$SKILLS_DIR/$link_name"
+    if [ -L "$target" ] || [ ! -e "$target" ]; then
+      ln -snf "$FRAMEWORK_DIR/skills/$skill_name" "$target"
+      LINKED+=("$link_name")
+    fi
+  fi
+done
+
+echo ""
+echo "Linked skills:"
+for name in "${LINKED[@]}"; do
+  echo "  /$name"
+done
+
+echo ""
+echo "gstack-framework ready."
+echo ""
+echo "Usage:"
+echo "  /gstack-framework    -- Full pipeline (analyze -> audit -> create -> apply -> verify)"
+echo "  /gf-analyze          -- Scan a repo"
+echo "  /gf-audit            -- Score against G-Stack standards"
+echo "  /gf-find-skills      -- Find where skills are needed"
+echo "  /gf-find-agents      -- Find agent opportunities"
+echo "  /gf-create-skills    -- Generate SKILL.md files"
+echo "  /gf-apply            -- Apply full template"
+echo "  /gf-verify           -- Verify everything"

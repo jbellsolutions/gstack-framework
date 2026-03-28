@@ -1,0 +1,212 @@
+# Completion Status Protocol
+
+Every skill session ends with exactly one status. No ambiguity. No "mostly done." The status tells the user (and any downstream skills) exactly where things stand.
+
+---
+
+## The Four Statuses
+
+### DONE
+
+All steps completed. Evidence provided for every verification step. No open questions. Nothing deferred.
+
+**When to use:**
+- Every phase completed successfully
+- Every verification step produced evidence (test output, diff, screenshot)
+- No concerns remain
+
+**Report format:**
+```
+Status: DONE
+Summary: [1-2 sentence description of what was accomplished]
+Evidence: [links to test output, diffs, screenshots, or logs]
+```
+
+**Example:**
+```
+Status: DONE
+Summary: Fixed the auth timeout by replacing hardcoded delay with configurable retry.
+  Added 4 regression tests. All pass.
+Evidence:
+  - Test output: 47 passed, 0 failed, 0 skipped
+  - Changed files: src/auth/retry.ts (refactored), test/auth/retry.test.ts (added)
+  - Diff: 3 files changed, 89 insertions, 12 deletions
+```
+
+---
+
+### DONE_WITH_CONCERNS
+
+All steps completed, but concerns exist that the user should know about. The work is shippable, but there are known risks, trade-offs, or follow-up items.
+
+**When to use:**
+- All phases completed and verified
+- But: you noticed something that could cause problems later
+- But: you made a judgment call that the user should validate
+- But: a test is flaky (passes sometimes, fails sometimes)
+- But: you found a related issue outside your current scope
+
+**Report format:**
+```
+Status: DONE_WITH_CONCERNS
+Summary: [what was accomplished]
+Concerns:
+  1. [Concern] -- Severity: [low/medium/high] -- Mitigation: [what to do about it]
+  2. [Concern] -- Severity: [low/medium/high] -- Mitigation: [what to do about it]
+```
+
+**Example:**
+```
+Status: DONE_WITH_CONCERNS
+Summary: Fixed the 5 QA bugs found in the checkout flow. All tests pass.
+Concerns:
+  1. The payment API returns inconsistent error codes for declined cards.
+     Severity: medium
+     Mitigation: Add a normalization layer. Track as a separate task.
+  2. The mobile layout at 320px width clips the "Place Order" button.
+     Severity: low
+     Mitigation: Requires design input. Flagged but not fixed.
+```
+
+---
+
+### BLOCKED
+
+Cannot proceed. Something prevents the skill from completing its work. This is not a failure. It is a signal that human intervention is needed.
+
+**When to use:**
+- A required resource is unavailable (API key, access, running service)
+- A prerequisite was not met
+- 3 attempts at the same step failed
+- A security concern requires human judgment
+- The scope of the problem exceeds what the skill can handle
+
+**Report format:**
+```
+Status: BLOCKED
+Summary: [what was attempted]
+Blocker: [specific reason progress stopped]
+Attempted:
+  1. [What was tried first and what happened]
+  2. [What was tried second and what happened]
+  3. [What was tried third and what happened]
+To unblock: [exactly what the user needs to do]
+```
+
+**Example:**
+```
+Status: BLOCKED
+Summary: Attempted to run database migration but cannot connect to staging DB.
+Blocker: Connection refused on staging-db.internal:5432
+Attempted:
+  1. Direct connection with provided credentials -- timeout after 30s
+  2. Connection via SSH tunnel to bastion host -- bastion key rejected
+  3. Checked if VPN is required -- cannot determine from available config
+To unblock: Verify VPN connection is active, or provide updated bastion SSH key.
+```
+
+---
+
+### NEEDS_CONTEXT
+
+Missing information that prevents meaningful progress. The skill knows what it needs but does not have it.
+
+**When to use:**
+- A required parameter was not provided and cannot be inferred
+- The codebase has ambiguity that requires human clarification
+- Multiple valid interpretations exist and the wrong choice wastes effort
+- Domain knowledge is needed that is not in the code
+
+**Report format:**
+```
+Status: NEEDS_CONTEXT
+Summary: [what was attempted so far]
+Missing:
+  1. [What is needed] -- [Why it is needed] -- [Which phase is blocked]
+  2. [What is needed] -- [Why it is needed] -- [Which phase is blocked]
+What I would do with it: [how providing this info unblocks progress]
+```
+
+**Example:**
+```
+Status: NEEDS_CONTEXT
+Summary: Found 3 potential root causes for the memory leak. Need clarification to narrow down.
+Missing:
+  1. Expected memory usage per request -- needed to classify "leak" vs "high but normal"
+     Blocks: Phase 2 (Analysis)
+  2. Whether the Redis connection pool is shared across workers -- affects hypothesis #2
+     Blocks: Phase 2 (Analysis)
+What I would do with it: With expected memory per request, I can classify the growth pattern.
+  With Redis pool info, I can rule out hypothesis #2 (connection leak) or confirm it.
+```
+
+---
+
+## Escalation Rules
+
+These rules override skill-specific logic. They apply to every skill, every time.
+
+### The 3-Strike Rule
+
+If you attempt the same step 3 times and it fails each time:
+
+1. **STOP.** Do not try a 4th time.
+2. Report BLOCKED with all 3 attempts documented.
+3. Include what was tried, what happened, and what the error messages said.
+
+The 3-strike rule prevents infinite loops where the agent keeps trying the same broken approach. Three failures means the problem is outside the agent's capability or knowledge.
+
+### The Security Gate
+
+If you are uncertain about a security implication:
+
+1. **STOP.** Do not proceed.
+2. Report BLOCKED with the security concern clearly stated.
+3. Do not attempt workarounds that bypass security controls.
+
+Examples:
+- Unsure if a file contains secrets --> STOP
+- Unsure if an action affects production --> STOP
+- Unsure if credentials should be committed --> STOP (they should not)
+
+### The Quality Gate
+
+Bad work is worse than no work.
+
+If you cannot do something correctly:
+1. Do not do it at all
+2. Report BLOCKED or NEEDS_CONTEXT
+3. Explain what would be needed to do it correctly
+
+A half-finished migration is worse than no migration. A test that always passes is worse than no test. Code that "should work" but has not been verified is worse than no code.
+
+### The Scope Gate
+
+If during execution you discover the problem is larger than expected:
+
+1. Complete what you can within the original scope
+2. Report DONE_WITH_CONCERNS
+3. List the expanded scope items as concerns
+4. Suggest adjacent skills for the remaining work
+
+Do not silently expand scope. Do not start a "quick fix" for something discovered mid-task. Flag it, finish your task, and let the user decide.
+
+---
+
+## Status Decision Tree
+
+```
+Did all phases complete?
+  |
+  +-- No --> Can you continue?
+  |           |
+  |           +-- No, missing info --> NEEDS_CONTEXT
+  |           +-- No, external blocker --> BLOCKED
+  |           +-- No, 3 strikes --> BLOCKED
+  |           +-- No, security concern --> BLOCKED
+  |
+  +-- Yes --> Any concerns?
+               |
+               +-- No --> DONE
+               +-- Yes --> DONE_WITH_CONCERNS
+```

@@ -1,0 +1,116 @@
+# Preamble Block
+
+This block runs at the start of every skill session. It establishes context, loads configuration, and sets behavioral defaults. Paste this into the top of any SKILL.md after the YAML frontmatter.
+
+---
+
+## Preamble
+
+```bash
+# ==================================================================
+# PREAMBLE: {{SKILL_NAME}} for {{PROJECT_NAME}}
+# Run this FIRST. Read the output. Store values as session context.
+# ==================================================================
+
+# ---- Session Tracking ----
+# Track active sessions to prevent conflicts and enable concurrency awareness
+mkdir -p ~/.{{PROJECT_NAME}}/sessions
+touch ~/.{{PROJECT_NAME}}/sessions/"$PPID"
+_SESSIONS=$(find ~/.{{PROJECT_NAME}}/sessions -mmin -120 -type f 2>/dev/null | wc -l | tr -d ' ')
+
+# ---- Branch Detection ----
+# Detect current branch and base branch for diff operations
+_BRANCH=$(git branch --show-current 2>/dev/null || echo "unknown")
+_BASE=$(git remote show origin 2>/dev/null | grep 'HEAD branch' | awk '{print $NF}' 2>/dev/null || echo "main")
+
+# ---- Repo Mode ----
+# Detect solo vs collaborative mode
+# Solo: fix everything you find. Collaborative: flag issues, do not fix without asking.
+_CONTRIBUTORS=$(git shortlog -sn --all 2>/dev/null | wc -l | tr -d ' ')
+if [ "$_CONTRIBUTORS" -le 1 ] 2>/dev/null; then
+  _REPO_MODE="solo"
+else
+  _REPO_MODE="collaborative"
+fi
+
+# ---- Config Loading ----
+# Load user preferences from project config directory
+_CONFIG_DIR="$HOME/.{{PROJECT_NAME}}/config"
+mkdir -p "$_CONFIG_DIR"
+_PROACTIVE=$(cat "$_CONFIG_DIR/proactive" 2>/dev/null || echo "true")
+_CONTRIBUTOR_MODE=$(cat "$_CONFIG_DIR/contributor" 2>/dev/null || echo "false")
+
+# ---- Version Check ----
+# Check for updates (non-blocking, fail-safe)
+_VERSION=$(cat VERSION 2>/dev/null || echo "0.0.0")
+_UPDATE_AVAILABLE=""
+if command -v {{PROJECT_NAME}}-update-check &>/dev/null; then
+  _UPDATE_AVAILABLE=$({{PROJECT_NAME}}-update-check 2>/dev/null || true)
+fi
+
+# ---- Telemetry (local only by default) ----
+mkdir -p ~/.{{PROJECT_NAME}}/analytics
+echo "{\"skill\":\"{{SKILL_NAME}}\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"branch\":\"$_BRANCH\"}" \
+  >> ~/.{{PROJECT_NAME}}/analytics/skill-usage.jsonl 2>/dev/null || true
+
+# ---- Output ----
+echo "SKILL: {{SKILL_NAME}}"
+echo "PROJECT: {{PROJECT_NAME}}"
+echo "VERSION: $_VERSION"
+echo "BRANCH: $_BRANCH"
+echo "BASE: $_BASE"
+echo "REPO_MODE: $_REPO_MODE"
+echo "SESSIONS: $_SESSIONS"
+echo "PROACTIVE: $_PROACTIVE"
+echo "CONTRIBUTOR: $_CONTRIBUTOR_MODE"
+[ -n "$_UPDATE_AVAILABLE" ] && echo "UPDATE: $_UPDATE_AVAILABLE"
+```
+
+### Post-Preamble Instructions
+
+Read the bash output above. Store these values as context for the rest of the session:
+
+- **BRANCH** -- Current git branch. Used for diff operations and AskUserQuestion re-grounding.
+- **BASE** -- Base branch (main/master). Used for `git diff BASE...HEAD`.
+- **REPO_MODE** -- `solo` means fix everything. `collaborative` means flag and ask before changing others' code.
+- **SESSIONS** -- Number of concurrent sessions. If > 1, warn about potential conflicts.
+- **PROACTIVE** -- If `true`, suggest adjacent skills when relevant. If `false`, only do what was asked.
+- **CONTRIBUTOR** -- If `true`, this user is a project contributor (unlocks internal workflows).
+- **UPDATE** -- If present, show the update notification once, then continue.
+
+---
+
+## Preamble Tiers
+
+Not every skill needs the full preamble. Use the tier system:
+
+### Tier 1 (Lightweight)
+For simple, focused skills like browse commands or single-task utilities.
+Includes: session tracking, branch detection, version check, trimmed voice directive.
+
+### Tier 2 (Standard)
+For skills that interact with users and make recommendations.
+Includes: Tier 1 + full voice directive, AskUserQuestion format, Completeness Principle.
+
+### Tier 3 (Full Context)
+For skills that need to understand the broader project and make strategic decisions.
+Includes: Tier 2 + repo mode detection, Search Before Building, contributor mode.
+
+### Tier 4 (Workflow)
+For complex multi-step workflows like ship, QA, and review.
+Includes: Tier 3 + test failure triage, cross-skill orchestration, stop/continue logic.
+
+---
+
+## Customization
+
+Replace `{{PROJECT_NAME}}` with your project's name (lowercase, no spaces). This value propagates to:
+- Session directory: `~/.{{PROJECT_NAME}}/sessions/`
+- Config directory: `~/.{{PROJECT_NAME}}/config/`
+- Analytics directory: `~/.{{PROJECT_NAME}}/analytics/`
+- Update check command: `{{PROJECT_NAME}}-update-check`
+
+Replace `{{SKILL_NAME}}` with the current skill's name. This value appears in:
+- Session tracking output
+- Analytics JSONL entries
+- Report headers
