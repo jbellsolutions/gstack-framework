@@ -1,31 +1,48 @@
 ---
-description: "Core team conventions applied to every interaction"
-alwaysApply: true
+description: Core conventions for gstack-framework development
+globs: ["**/*.md", "**/*.tmpl", "**/*.json"]
 ---
 
-# Core Conventions
+# Core Conventions for gstack-framework
 
-## Commits
-- Descriptive messages explaining WHY, not just WHAT
-- One logical change per commit
-- Never commit secrets, .env files, or credentials
+## Skill conventions
+- Skills are standalone markdown files in `skills/{name}/SKILL.md`
+- Every skill has YAML frontmatter with: name, description (multi-line with triggers), allowed-tools
+- Every skill uses phase-based workflow: Context -> Analysis -> Action -> Verification -> Report
+- Every skill has a verification step requiring evidence (not claims)
+- Every skill has stop conditions (both "stop for" and "never stop for")
+- Every skill has voice directive banning AI slop vocabulary
+- Every skill has Completion Status Protocol (DONE, BLOCKED, NEEDS_CONTEXT)
 
-## Error Handling
-- Every external call (API, DB, file) gets try/catch or equivalent
-- Errors include context: what was attempted, what failed, and what to do about it
-- Never swallow errors silently
+## Template conventions
+- Templates live in `templates/` with `.tmpl` extension
+- All placeholders use `{{PLACEHOLDER}}` syntax (double curly braces, ALL_CAPS)
+- Placeholder names are part of the public API. Renaming breaks the apply skill.
+- When adding a new placeholder, update `skills/apply/SKILL.md` in the same commit
 
-## Code Style
-- Follow existing patterns in the codebase
-- If no pattern exists, follow language defaults
-- Comments explain WHY, not WHAT (the code explains what)
+## Checklist conventions
+- Checklists live in `checklists/` as markdown files
+- Each checkbox item has a point value in brackets: `- [ ] [2] Description`
+- Point values must sum correctly within each category
+- Pass thresholds: 70/100 ship-ready, 85/100 production-grade, 95/100 reference-quality
 
-## Testing
-- New features get tests before merging
-- Bug fixes include a regression test
-- Run existing tests before committing
+## Non-destructive principle
+- Never overwrite existing files without user confirmation
+- Show diffs before applying changes
+- The framework adds alongside, never replaces silently
 
-## Security
-- No hardcoded secrets — use environment variables
-- Validate all external inputs
-- Check .gitignore includes .env, credentials, and key files
+## Backward compatibility
+- Existing skill names and interfaces are stable
+- Template placeholder names are stable
+- Checklist point totals are stable
+- Adding new skills, templates, or checklists is always safe
+- Modifying existing interfaces requires a deprecation path
+
+## File naming
+- Skills: kebab-case directory name matching the `name` field in frontmatter
+- Templates: PascalCase or UPPER-CASE filename with `.tmpl` extension
+- Checklists: kebab-case with `.md` extension
+
+## Quality gate
+- Every SKILL.md must score 35+ on `checklists/skill-quality.md` before merge
+- Every repo transformation must score 70+ on `checklists/repo-quality.md`
